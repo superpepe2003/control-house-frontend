@@ -9,9 +9,10 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     canActivate: [authGuard],
-    // TODO: reemplazar con el componente de dashboard cuando esté listo
     loadComponent: () =>
-      import('./features/auth/pages/login/login.component').then((m) => m.LoginComponent),
+      import('./features/dashboard/pages/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent,
+      ),
   },
   {
     path: '',

@@ -1,0 +1,15 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.dashboard-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 64px);
+}
+
+.placeholder-text {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 1.1rem;
+}
