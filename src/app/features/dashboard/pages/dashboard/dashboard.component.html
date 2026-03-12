@@ -1,16 +1,78 @@
 <mat-toolbar color="primary">
-  <span>Control House</span>
+  <mat-icon aria-hidden="true">home</mat-icon>
+  <span class="toolbar-title">Control House</span>
   <span class="spacer"></span>
-  <button
-    mat-icon-button
-    (click)="logout()"
-    aria-label="Cerrar sesión"
-    title="Cerrar sesión"
-  >
+  <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión" matTooltip="Cerrar sesión">
     <mat-icon>logout</mat-icon>
   </button>
 </mat-toolbar>
 
 <main class="dashboard-content">
-  <p class="placeholder-text">Dashboard en construcción</p>
+  <div class="hero-section" aria-labelledby="dashboard-heading">
+    <div class="hero-icon" aria-hidden="true">
+      <mat-icon>savings</mat-icon>
+    </div>
+    <h1 id="dashboard-heading" class="hero-title">Panel de control</h1>
+    <p class="hero-subtitle">Gestioná tus finanzas personales desde un solo lugar.</p>
+  </div>
+
+  <section class="nav-section" aria-label="Módulos disponibles">
+    <h2 class="section-title">Módulos</h2>
+
+    <div class="cards-grid">
+      @for (card of navCards; track card.route) {
+        <mat-card
+          class="nav-card"
+          [class.nav-card--disabled]="!card.available"
+          [attr.aria-disabled]="!card.available"
+          (click)="navigate(card)"
+          (keydown.enter)="navigate(card)"
+          (keydown.space)="navigate(card)"
+          [tabindex]="card.available ? 0 : -1"
+          [attr.role]="card.available ? 'button' : 'article'"
+          [attr.aria-label]="card.available ? ('Ir a ' + card.title) : (card.title + ', próximamente')"
+        >
+          <mat-card-header>
+            <div class="card-icon-wrapper" [class]="card.color" aria-hidden="true">
+              <mat-icon>{{ card.icon }}</mat-icon>
+            </div>
+            <div class="card-header-text">
+              <mat-card-title>{{ card.title }}</mat-card-title>
+              <mat-card-subtitle>
+                @if (card.available) {
+                  <mat-chip class="chip-active">Disponible</mat-chip>
+                } @else {
+                  <mat-chip class="chip-soon">Próximamente</mat-chip>
+                }
+              </mat-card-subtitle>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <p class="card-description">{{ card.description }}</p>
+          </mat-card-content>
+
+          <mat-card-actions>
+            @if (card.available) {
+              <button
+                mat-flat-button
+                class="card-btn"
+                [routerLink]="card.route"
+                (click)="$event.stopPropagation()"
+                [attr.aria-label]="'Ir a ' + card.title"
+              >
+                <mat-icon>arrow_forward</mat-icon>
+                Ir a {{ card.title }}
+              </button>
+            } @else {
+              <button mat-stroked-button disabled class="card-btn-disabled" aria-hidden="true">
+                <mat-icon>schedule</mat-icon>
+                En desarrollo
+              </button>
+            }
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  </section>
 </main>

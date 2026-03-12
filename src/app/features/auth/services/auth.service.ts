@@ -21,13 +21,13 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials)
-      .pipe(tap((res) => this.saveToken(res.token)));
+      .pipe(tap((res) => this.saveToken(res.data.token)));
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${environment.apiUrl}/auth/register`, data)
-      .pipe(tap((res) => this.saveToken(res.token)));
+      .pipe(tap((res) => this.saveToken(res.data.token)));
   }
 
   logout(): void {
