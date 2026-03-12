@@ -10,5 +10,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  data: {
+    token: string;
+  };
 }
