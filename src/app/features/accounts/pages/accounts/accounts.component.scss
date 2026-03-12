@@ -1,0 +1,186 @@
+mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.page-content {
+  min-height: calc(100vh - 64px);
+  background-color: var(--mat-sys-surface-variant);
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  gap: 16px;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+  font-size: 1rem;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+
+  .page-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .accounts-count {
+    margin: 4px 0 0;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.875rem;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    color: var(--mat-sys-on-surface);
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 1rem;
+  }
+}
+
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.account-card {
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--mat-sys-level3);
+  }
+
+  mat-card-header {
+    margin-bottom: 8px;
+  }
+
+  mat-card-subtitle {
+    margin-top: 4px;
+  }
+
+  mat-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px;
+  }
+
+  .delete-btn {
+    color: var(--mat-sys-error);
+  }
+}
+
+.account-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+
+  mat-icon {
+    color: white;
+  }
+
+  &.avatar-cash {
+    background-color: #4caf50;
+  }
+
+  &.avatar-bank {
+    background-color: #2196f3;
+  }
+
+  &.avatar-credit {
+    background-color: #9c27b0;
+  }
+}
+
+.balance-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+
+  .balance-label {
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .balance-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+
+    &.negative {
+      color: var(--mat-sys-error);
+    }
+  }
+}
+
+/* Chips de tipo */
+mat-chip {
+  &.chip-cash {
+    --mdc-chip-label-text-color: #2e7d32;
+    --mdc-chip-elevated-container-color: #e8f5e9;
+  }
+
+  &.chip-bank {
+    --mdc-chip-label-text-color: #1565c0;
+    --mdc-chip-elevated-container-color: #e3f2fd;
+  }
+
+  &.chip-credit {
+    --mdc-chip-label-text-color: #6a1b9a;
+    --mdc-chip-elevated-container-color: #f3e5f5;
+  }
+}
