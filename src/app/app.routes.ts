@@ -15,6 +15,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'accounts',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/accounts/accounts.routes').then((m) => m.accountsRoutes),
+  },
+  {
     path: '',
     redirectTo: '/auth/login',
     pathMatch: 'full',
