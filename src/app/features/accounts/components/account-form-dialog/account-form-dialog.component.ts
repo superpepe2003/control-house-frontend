@@ -17,6 +17,7 @@ export const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
   { value: 'CASH', label: 'Efectivo' },
   { value: 'BANK', label: 'Cuenta bancaria' },
   { value: 'CREDIT', label: 'Tarjeta de crédito' },
+  { value: 'VIRTUAL', label: 'Billetera virtual' },
 ];
 
 export const CURRENCIES = ['USD', 'PYG', 'ARS', 'EUR', 'BRL'];
