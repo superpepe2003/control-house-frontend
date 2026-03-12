@@ -1,15 +1,205 @@
-.spacer {
-  flex: 1 1 auto;
+mat-toolbar {
+  .toolbar-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
 }
 
 .dashboard-content {
+  min-height: calc(100vh - 64px);
+  background-color: var(--mat-sys-surface-variant);
+}
+
+/* ── Hero ── */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px 48px;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
+  text-align: center;
+  color: white;
+
+  .hero-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    margin-bottom: 20px;
+
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+  }
+
+  .hero-title {
+    margin: 0 0 10px;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-subtitle {
+    margin: 0;
+    font-size: 1rem;
+    opacity: 0.75;
+    max-width: 400px;
+  }
+}
+
+/* ── Sección de módulos ── */
+.nav-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 48px;
+
+  .section-title {
+    margin: 0 0 24px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ── Grid de cards ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* ── Card base ── */
+.nav-card {
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  outline-offset: 3px;
+
+  &:hover:not(.nav-card--disabled) {
+    transform: translateY(-3px);
+    box-shadow: var(--mat-sys-level3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+  }
+
+  /* Card deshabilitada */
+  &.nav-card--disabled {
+    cursor: default;
+    opacity: 0.6;
+
+    .card-icon-wrapper {
+      filter: grayscale(0.4);
+    }
+  }
+
+  mat-card-header {
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  mat-card-actions {
+    padding: 8px 16px 16px;
+  }
+}
+
+/* ── Ícono de la card ── */
+.card-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100vh - 64px);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  margin-right: 12px;
+  flex-shrink: 0;
+
+  mat-icon {
+    color: white;
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  &.card-accounts {
+    background: linear-gradient(135deg, #1565c0, #42a5f5);
+  }
+
+  &.card-categories {
+    background: linear-gradient(135deg, #2e7d32, #66bb6a);
+  }
+
+  &.card-transactions {
+    background: linear-gradient(135deg, #6a1b9a, #ab47bc);
+  }
 }
 
-.placeholder-text {
+/* ── Texto del header ── */
+.card-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  mat-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+}
+
+/* ── Descripción ── */
+.card-description {
+  margin: 0;
+  font-size: 0.875rem;
   color: var(--mat-sys-on-surface-variant);
-  font-size: 1.1rem;
+  line-height: 1.5;
+  min-height: 3rem;
+}
+
+/* ── Botones de acción ── */
+.card-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.card-btn-disabled {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 6px;
+  cursor: default;
+}
+
+/* ── Chips de estado ── */
+mat-chip {
+  font-size: 0.7rem;
+  height: 22px;
+  min-height: 22px;
+
+  &.chip-active {
+    --mdc-chip-label-text-color: #1b5e20;
+    --mdc-chip-elevated-container-color: #e8f5e9;
+  }
+
+  &.chip-soon {
+    --mdc-chip-label-text-color: #e65100;
+    --mdc-chip-elevated-container-color: #fff3e0;
+  }
 }
