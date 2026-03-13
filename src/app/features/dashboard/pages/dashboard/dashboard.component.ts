@@ -22,7 +22,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
 import { AuthService } from '../../../auth/services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
-import { DashboardSummary, PrevMonthTotals } from '../../models/dashboard.models';
+import { DashboardSummary } from '../../models/dashboard.models';
 import { Transaction } from '../../../transactions/models/transaction.models';
 
 @Component({
@@ -99,13 +99,13 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.dashboardService
-      .getFullDashboard()
+      .getSummary()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ summary, prevMonth }) => {
+        next: (summary) => {
           this.summary.set(summary);
           this.recentTransactions.set(summary.recentTransactions);
-          this.buildCharts(summary, prevMonth);
+          this.buildCharts(summary);
           this.loading.set(false);
         },
         error: (err) => {
@@ -120,9 +120,11 @@ export class DashboardComponent implements OnInit {
     return parseFloat(String(value));
   }
 
-  private buildCharts(summary: DashboardSummary, prevMonth: PrevMonthTotals): void {
+  private buildCharts(summary: DashboardSummary): void {
     const currIncome = this.toNumber(summary.monthlyIncome);
     const currExpenses = this.toNumber(summary.monthlyExpenses);
+    const prevIncome = this.toNumber(summary.previousMonthIncome);
+    const prevExpenses = this.toNumber(summary.previousMonthExpenses);
 
     // Barras agrupadas: [Ingresos, Gastos] — dataset por mes
     this.barChartData.set({
@@ -130,7 +132,7 @@ export class DashboardComponent implements OnInit {
       datasets: [
         {
           label: 'Mes anterior',
-          data: [prevMonth.income, prevMonth.expenses],
+          data: [prevIncome, prevExpenses],
           backgroundColor: ['rgba(66, 165, 250, 0.7)', 'rgba(239, 83, 80, 0.65)'],
           borderColor: ['#1565c0', '#c62828'],
           borderWidth: 1,
