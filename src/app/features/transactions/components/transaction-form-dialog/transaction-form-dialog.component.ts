@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,6 +28,7 @@ export interface TransactionFormDialogData {
 @Component({
   selector: 'app-transaction-form-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
@@ -75,9 +76,20 @@ export interface TransactionFormDialogData {
 
           <mat-form-field class="full-width">
             <mat-label>Cuenta</mat-label>
-            <mat-select formControlName="accountId">
-              @for (account of accounts(); track account.id) {
+            <mat-select formControlName="accountId" (closed)="accountSearchTerm.set('')">
+              <div class="select-search-wrapper" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                <input
+                  class="select-search-input"
+                  placeholder="Buscar cuenta..."
+                  aria-label="Buscar cuenta"
+                  (input)="onAccountSearch($event)"
+                />
+              </div>
+              @for (account of filteredAccounts(); track account.id) {
                 <mat-option [value]="account.id">{{ account.name }}</mat-option>
+              }
+              @if (filteredAccounts().length === 0) {
+                <mat-option disabled>Sin resultados</mat-option>
               }
             </mat-select>
             @if (form.get('accountId')?.hasError('required') && form.get('accountId')?.touched) {
@@ -87,12 +99,20 @@ export interface TransactionFormDialogData {
 
           <mat-form-field class="full-width">
             <mat-label>Categoría</mat-label>
-            <mat-select formControlName="categoryId">
+            <mat-select formControlName="categoryId" (closed)="categorySearchTerm.set('')">
+              <div class="select-search-wrapper" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                <input
+                  class="select-search-input"
+                  placeholder="Buscar categoría..."
+                  aria-label="Buscar categoría"
+                  (input)="onCategorySearch($event)"
+                />
+              </div>
               @for (cat of filteredCategories(); track cat.id) {
                 <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
               }
               @if (filteredCategories().length === 0) {
-                <mat-option disabled>No hay categorías para este tipo</mat-option>
+                <mat-option disabled>Sin resultados para este tipo</mat-option>
               }
             </mat-select>
             @if (form.get('categoryId')?.hasError('required') && form.get('categoryId')?.touched) {
@@ -166,6 +186,30 @@ export interface TransactionFormDialogData {
     mat-spinner {
       display: inline-block;
     }
+
+    /* Contenedor del buscador — pegado al tope del panel del select */
+    .select-search-wrapper {
+      padding: 8px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--mat-sys-surface, #fff);
+    }
+
+    .select-search-input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+      padding: 4px 0;
+      outline: none;
+      font-size: 14px;
+      background: transparent;
+      color: inherit;
+
+      &::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+      }
+    }
   `,
 })
 export class TransactionFormDialogComponent implements OnInit {
@@ -181,6 +225,8 @@ export class TransactionFormDialogComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly accounts = signal<Account[]>([]);
   readonly categories = signal<Category[]>([]);
+  readonly accountSearchTerm = signal('');
+  readonly categorySearchTerm = signal('');
 
   readonly isEdit = !!this.data?.transaction;
 
@@ -215,17 +261,35 @@ export class TransactionFormDialogComponent implements OnInit {
     { initialValue: (this.data?.transaction?.type ?? 'EXPENSE') as TransactionType },
   );
 
-  readonly filteredCategories = computed(() =>
-    this.categories().filter((c) => c.type === this.selectedType()),
-  );
+  readonly filteredAccounts = computed(() => {
+    const term = this.accountSearchTerm().toLowerCase().trim();
+    if (!term) return this.accounts();
+    return this.accounts().filter((a) => a.name.toLowerCase().includes(term));
+  });
+
+  readonly filteredCategories = computed(() => {
+    const term = this.categorySearchTerm().toLowerCase().trim();
+    const byType = this.categories().filter((c) => c.type === this.selectedType());
+    if (!term) return byType;
+    return byType.filter((c) => c.name.toLowerCase().includes(term));
+  });
 
   ngOnInit(): void {
     this.loadData();
   }
 
-  // Cuando cambia el tipo, limpia la categoría seleccionada
+  // Cuando cambia el tipo, limpia la categoría seleccionada y el término de búsqueda
   onTypeChange(): void {
     this.form.patchValue({ categoryId: null });
+    this.categorySearchTerm.set('');
+  }
+
+  onAccountSearch(event: Event): void {
+    this.accountSearchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  onCategorySearch(event: Event): void {
+    this.categorySearchTerm.set((event.target as HTMLInputElement).value);
   }
 
   private loadData(): void {

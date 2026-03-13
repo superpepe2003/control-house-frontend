@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CurrencyPipe, DatePipe, formatDate } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,12 +14,15 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../auth/services/auth.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { CategoriesService } from '../../../categories/services/categories.service';
+import { Category } from '../../../categories/models/category.models';
 import { ListTransactionsParams, PaginationMeta, Transaction, TransactionType } from '../../models/transaction.models';
 import {
   TransactionFormDialogComponent,
@@ -45,6 +50,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepickerModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatDialogModule,
@@ -55,13 +61,16 @@ import {
 })
 export class TransactionsComponent implements OnInit {
   private readonly transactionsService = inject(TransactionsService);
+  private readonly categoriesService = inject(CategoriesService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly transactions = signal<Transaction[]>([]);
+  readonly categories = signal<Category[]>([]);
   readonly meta = signal<PaginationMeta | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -72,12 +81,30 @@ export class TransactionsComponent implements OnInit {
 
   readonly filterForm = this.fb.group({
     type: ['' as TransactionType | ''],
-    dateFrom: [''],
-    dateTo: [''],
+    categoryId: [null as number | null],
+    dateFrom: [null as Date | null],
+    dateTo: [null as Date | null],
   });
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadTransactions();
+
+    // Recargar la lista al navegar de vuelta a esta página (por si el componente es reutilizado)
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        filter((e) => e.urlAfterRedirects.startsWith('/transactions')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.loadTransactions());
+  }
+
+  loadCategories(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (data) => this.categories.set(data),
+      error: () => { /* silencioso: el filtro simplemente queda vacío */ },
+    });
   }
 
   loadTransactions(): void {
@@ -91,8 +118,21 @@ export class TransactionsComponent implements OnInit {
     };
 
     if (raw.type) params.type = raw.type as TransactionType;
-    if (raw.dateFrom) params.dateFrom = raw.dateFrom;
-    if (raw.dateTo) params.dateTo = raw.dateTo;
+    if (raw.categoryId) params.categoryId = raw.categoryId;
+
+    const toYMD = (d: Date): string => formatDate(d, 'yyyy-MM-dd', 'en-US');
+
+    if (raw.dateFrom && !raw.dateTo) {
+      // Solo "desde": aplicar hasta hoy como límite superior
+      params.dateFrom = toYMD(raw.dateFrom as Date);
+      params.dateTo = toYMD(new Date());
+    } else if (!raw.dateFrom && raw.dateTo) {
+      // Solo "hasta": sin límite inferior
+      params.dateTo = toYMD(raw.dateTo as Date);
+    } else if (raw.dateFrom && raw.dateTo) {
+      params.dateFrom = toYMD(raw.dateFrom as Date);
+      params.dateTo = toYMD(raw.dateTo as Date);
+    }
 
     this.transactionsService.getAll(params).subscribe({
       next: ({ data, meta }) => {
@@ -113,7 +153,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.filterForm.reset({ type: '', dateFrom: '', dateTo: '' });
+    this.filterForm.reset({ type: '', categoryId: null, dateFrom: null, dateTo: null });
     this.currentPage.set(1);
     this.loadTransactions();
   }
