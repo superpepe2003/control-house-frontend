@@ -1,5 +1,8 @@
 @use '@angular/material' as mat;
 
+// Incluye estilos base (ripples, elevation, animaciones) en el bundle principal — evita FOUC
+@include mat.core();
+
 html {
   height: 100%;
   @include mat.theme(
