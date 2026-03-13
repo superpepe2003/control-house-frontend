@@ -59,7 +59,7 @@ export class DashboardComponent {
       icon: 'receipt_long',
       route: '/transactions',
       color: 'card-transactions',
-      available: false,
+      available: true,
     },
   ];
 

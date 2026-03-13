@@ -1,0 +1,179 @@
+mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.page-content {
+  min-height: calc(100vh - 64px);
+  background-color: var(--mat-sys-surface-variant);
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  gap: 16px;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+  font-size: 1rem;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  .page-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .transactions-count {
+    margin: 4px 0 0;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.875rem;
+  }
+}
+
+/* Sección de filtros */
+.filters-card {
+  margin-bottom: 24px;
+
+  mat-card-content {
+    padding: 16px 16px 8px;
+  }
+}
+
+.filters-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+
+  .filter-field {
+    min-width: 180px;
+    flex: 1;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-top: 4px;
+  }
+}
+
+/* Estado vacío */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    color: var(--mat-sys-on-surface);
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 1rem;
+  }
+}
+
+/* Tabla */
+.table-card {
+  overflow: hidden;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+
+  .description-cell {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .amount-header {
+    text-align: right;
+  }
+
+  .amount-cell {
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    &.amount-income {
+      color: #2e7d32;
+    }
+
+    &.amount-expense {
+      color: var(--mat-sys-error);
+    }
+  }
+
+  td.mat-column-actions,
+  th.mat-column-actions {
+    width: 96px;
+    text-align: right;
+  }
+}
+
+.delete-btn {
+  color: var(--mat-sys-error);
+}
+
+/* Chips de tipo */
+mat-chip {
+  &.chip-income {
+    --mdc-chip-label-text-color: #2e7d32;
+    --mdc-chip-elevated-container-color: #e8f5e9;
+  }
+
+  &.chip-expense {
+    --mdc-chip-label-text-color: #b71c1c;
+    --mdc-chip-elevated-container-color: #ffebee;
+  }
+}
