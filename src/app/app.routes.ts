@@ -27,6 +27,12 @@ export const routes: Routes = [
       import('./features/categories/categories.routes').then((m) => m.categoriesRoutes),
   },
   {
+    path: 'transactions',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/transactions/transactions.routes').then((m) => m.transactionsRoutes),
+  },
+  {
     path: '',
     redirectTo: '/auth/login',
     pathMatch: 'full',
