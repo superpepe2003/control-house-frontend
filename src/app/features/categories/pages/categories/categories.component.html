@@ -1,0 +1,168 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goToDashboard()" aria-label="Volver al dashboard" matTooltip="Dashboard">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="toolbar-title">Mis Categorías</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="logout()" aria-label="Cerrar sesión" matTooltip="Cerrar sesión">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<main class="page-content">
+  @if (loading()) {
+    <div class="center-container" aria-live="polite" aria-label="Cargando categorías">
+      <mat-spinner />
+    </div>
+  } @else if (error()) {
+    <div class="center-container">
+      <p class="error-text" role="alert">{{ error() }}</p>
+      <button mat-flat-button (click)="loadCategories()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="content-wrapper">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Categorías</h1>
+          @if (categories().length > 0) {
+            <p class="categories-count">{{ categories().length }} categoría(s) registrada(s)</p>
+          }
+        </div>
+        <button mat-flat-button (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Nueva categoría
+        </button>
+      </div>
+
+      @if (categories().length === 0) {
+        <div class="empty-state">
+          <mat-icon class="empty-icon" aria-hidden="true">label</mat-icon>
+          <h2>Sin categorías registradas</h2>
+          <p>Creá tu primera categoría para organizar tus ingresos y gastos.</p>
+          <button mat-flat-button (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Crear primera categoría
+          </button>
+        </div>
+      } @else {
+        <div class="sections-wrapper">
+
+          <!-- Sección Ingresos -->
+          <section class="category-section" aria-labelledby="income-section-title">
+            <div class="section-header">
+              <div class="section-title-wrapper">
+                <div class="section-icon income-icon" aria-hidden="true">
+                  <mat-icon>trending_up</mat-icon>
+                </div>
+                <h2 id="income-section-title" class="section-title">Ingresos</h2>
+              </div>
+              <span class="section-count">{{ incomeCategories().length }}</span>
+            </div>
+
+            @if (incomeCategories().length === 0) {
+              <p class="section-empty">Sin categorías de ingreso. <button mat-button (click)="openCreateDialog()">Agregar una</button></p>
+            } @else {
+              <table mat-table [dataSource]="incomeCategories()" class="category-table" aria-label="Categorías de ingreso">
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                  <td mat-cell *matCellDef="let category">{{ category.name }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                  <td mat-cell *matCellDef="let category">
+                    <mat-chip class="chip-income">Ingreso</mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef class="actions-header"></th>
+                  <td mat-cell *matCellDef="let category" class="actions-cell">
+                    <button
+                      mat-icon-button
+                      (click)="openEditDialog(category)"
+                      [attr.aria-label]="'Editar categoría ' + category.name"
+                      matTooltip="Editar"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      class="delete-btn"
+                      (click)="confirmDelete(category)"
+                      [attr.aria-label]="'Eliminar categoría ' + category.name"
+                      matTooltip="Eliminar"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            }
+          </section>
+
+          <!-- Sección Gastos -->
+          <section class="category-section" aria-labelledby="expense-section-title">
+            <div class="section-header">
+              <div class="section-title-wrapper">
+                <div class="section-icon expense-icon" aria-hidden="true">
+                  <mat-icon>trending_down</mat-icon>
+                </div>
+                <h2 id="expense-section-title" class="section-title">Gastos</h2>
+              </div>
+              <span class="section-count">{{ expenseCategories().length }}</span>
+            </div>
+
+            @if (expenseCategories().length === 0) {
+              <p class="section-empty">Sin categorías de gasto. <button mat-button (click)="openCreateDialog()">Agregar una</button></p>
+            } @else {
+              <table mat-table [dataSource]="expenseCategories()" class="category-table" aria-label="Categorías de gasto">
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                  <td mat-cell *matCellDef="let category">{{ category.name }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                  <td mat-cell *matCellDef="let category">
+                    <mat-chip class="chip-expense">Gasto</mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef class="actions-header"></th>
+                  <td mat-cell *matCellDef="let category" class="actions-cell">
+                    <button
+                      mat-icon-button
+                      (click)="openEditDialog(category)"
+                      [attr.aria-label]="'Editar categoría ' + category.name"
+                      matTooltip="Editar"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      class="delete-btn"
+                      (click)="confirmDelete(category)"
+                      [attr.aria-label]="'Eliminar categoría ' + category.name"
+                      matTooltip="Eliminar"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            }
+          </section>
+
+        </div>
+      }
+    </div>
+  }
+</main>

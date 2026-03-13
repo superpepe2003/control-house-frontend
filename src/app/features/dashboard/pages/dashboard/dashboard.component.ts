@@ -51,7 +51,7 @@ export class DashboardComponent {
       icon: 'label',
       route: '/categories',
       color: 'card-categories',
-      available: false,
+      available: true,
     },
     {
       title: 'Transacciones',

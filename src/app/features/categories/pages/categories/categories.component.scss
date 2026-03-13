@@ -1,0 +1,195 @@
+mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.page-content {
+  min-height: calc(100vh - 64px);
+  background-color: var(--mat-sys-surface-variant);
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  gap: 16px;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+  font-size: 1rem;
+}
+
+.content-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+
+  .page-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .categories-count {
+    margin: 4px 0 0;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.875rem;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  .empty-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    color: var(--mat-sys-on-surface);
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 1rem;
+  }
+}
+
+.sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.category-section {
+  background-color: var(--mat-sys-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--mat-sys-level1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  .section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .section-count {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+    background-color: var(--mat-sys-surface-variant);
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+}
+
+.section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+
+  mat-icon {
+    color: white;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.income-icon {
+    background-color: #2e7d32;
+  }
+
+  &.expense-icon {
+    background-color: #c62828;
+  }
+}
+
+.section-empty {
+  margin: 0;
+  padding: 20px 24px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.category-table {
+  width: 100%;
+  background: transparent;
+
+  .actions-header {
+    width: 96px;
+    text-align: right;
+  }
+
+  .actions-cell {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .delete-btn {
+    color: var(--mat-sys-error);
+  }
+}
+
+/* Chips de tipo */
+mat-chip {
+  &.chip-income {
+    --mdc-chip-label-text-color: #2e7d32;
+    --mdc-chip-elevated-container-color: #e8f5e9;
+  }
+
+  &.chip-expense {
+    --mdc-chip-label-text-color: #c62828;
+    --mdc-chip-elevated-container-color: #ffebee;
+  }
+}
