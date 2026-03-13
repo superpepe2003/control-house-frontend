@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +17,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDividerModule } from '@angular/material/divider';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -40,7 +39,6 @@ import { Transaction } from '../../../transactions/models/transaction.models';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatDividerModule,
     BaseChartDirective,
   ],
   templateUrl: './dashboard.component.html',
@@ -49,18 +47,19 @@ import { Transaction } from '../../../transactions/models/transaction.models';
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly summary = signal<DashboardSummary | null>(null);
-
   readonly recentTransactions = signal<Transaction[]>([]);
+
   readonly displayedColumns = ['date', 'description', 'category', 'type', 'amount'];
 
-  // ── Gráfico de barras (comparativo mes anterior vs mes actual) ──
-  readonly barChartData = signal<ChartData<'bar'>>({ labels: [], datasets: [] });
+  // Datos de Chart.js como propiedades simples (no signals) para compatibilidad con OnPush
+  barChartData: ChartData<'bar'> = { labels: [], datasets: [] };
+  pieChartData: ChartData<'pie'> = { labels: [], datasets: [] };
+
   readonly barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -81,8 +80,6 @@ export class DashboardComponent implements OnInit {
     },
   };
 
-  // ── Gráfico de torta (gastos por categoría) ──
-  readonly pieChartData = signal<ChartData<'pie'>>({ labels: [], datasets: [] });
   readonly pieChartOptions: ChartOptions<'pie'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -97,6 +94,10 @@ export class DashboardComponent implements OnInit {
     },
   };
 
+  // Flags para controlar si hay datos suficientes para renderizar cada gráfico
+  readonly hasBarData = signal(false);
+  readonly hasPieData = signal(false);
+
   ngOnInit(): void {
     this.dashboardService
       .getSummary()
@@ -104,7 +105,7 @@ export class DashboardComponent implements OnInit {
       .subscribe({
         next: (summary) => {
           this.summary.set(summary);
-          this.recentTransactions.set(summary.recentTransactions);
+          this.recentTransactions.set(summary.recentTransactions ?? []);
           this.buildCharts(summary);
           this.loading.set(false);
         },
@@ -115,9 +116,11 @@ export class DashboardComponent implements OnInit {
       });
   }
 
-  /** Prisma serializa Decimal como string — lo convertimos a number */
-  toNumber(value: string | number): number {
-    return parseFloat(String(value));
+  /** Prisma serializa Decimal como string — convierte a number seguro */
+  toNumber(value: string | number | null | undefined): number {
+    if (value === null || value === undefined) return 0;
+    const n = parseFloat(String(value));
+    return isNaN(n) ? 0 : n;
   }
 
   private buildCharts(summary: DashboardSummary): void {
@@ -126,14 +129,13 @@ export class DashboardComponent implements OnInit {
     const prevIncome = this.toNumber(summary.previousMonthIncome);
     const prevExpenses = this.toNumber(summary.previousMonthExpenses);
 
-    // Barras agrupadas: [Ingresos, Gastos] — dataset por mes
-    this.barChartData.set({
+    this.barChartData = {
       labels: ['Ingresos', 'Gastos'],
       datasets: [
         {
           label: 'Mes anterior',
           data: [prevIncome, prevExpenses],
-          backgroundColor: ['rgba(66, 165, 250, 0.7)', 'rgba(239, 83, 80, 0.65)'],
+          backgroundColor: ['rgba(66, 165, 250, 0.75)', 'rgba(239, 83, 80, 0.7)'],
           borderColor: ['#1565c0', '#c62828'],
           borderWidth: 1,
           borderRadius: 4,
@@ -147,15 +149,16 @@ export class DashboardComponent implements OnInit {
           borderRadius: 4,
         },
       ],
-    });
+    };
+    this.hasBarData.set(true);
 
-    // Torta: gastos por categoría del mes actual
-    if (summary.expensesByCategory.length > 0) {
-      this.pieChartData.set({
-        labels: summary.expensesByCategory.map((e) => e.categoryName),
+    const categories = summary.expensesByCategory ?? [];
+    if (categories.length > 0) {
+      this.pieChartData = {
+        labels: categories.map((e) => e.categoryName),
         datasets: [
           {
-            data: summary.expensesByCategory.map((e) => this.toNumber(e.total)),
+            data: categories.map((e) => this.toNumber(e.total)),
             backgroundColor: [
               '#ef5350', '#ab47bc', '#42a5f5', '#26a69a',
               '#ffca28', '#ff7043', '#66bb6a', '#8d6e63',
@@ -163,12 +166,9 @@ export class DashboardComponent implements OnInit {
             hoverOffset: 8,
           },
         ],
-      });
+      };
+      this.hasPieData.set(true);
     }
-  }
-
-  navigate(route: string): void {
-    this.router.navigate([route]);
   }
 
   logout(): void {
