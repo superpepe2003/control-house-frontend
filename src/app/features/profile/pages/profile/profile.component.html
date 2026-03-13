@@ -80,8 +80,9 @@
           @if (savingInfo()) {
             <mat-spinner diameter="20" />
           } @else {
-            <mat-icon>save</mat-icon>
-            Guardar cambios
+            <span style="display:flex;align-items:center;gap:8px">
+              <mat-icon>save</mat-icon>Guardar Cambios
+            </span>
           }
         </button>
       </mat-card-actions>
@@ -186,8 +187,9 @@
             @if (savingPassword()) {
               <mat-spinner diameter="20" />
             } @else {
-              <mat-icon>check</mat-icon>
-              Cambiar contraseña
+              <span style="display:flex;align-items:center;gap:8px">
+                <mat-icon>check</mat-icon>Cambiar Contraseña
+              </span>
             }
           </button>
         </mat-card-actions>

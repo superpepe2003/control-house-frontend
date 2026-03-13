@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { PreloadAllModules, provideRouter, withPreloading } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -19,9 +19,9 @@ const APP_DATE_FORMATS = {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideAnimationsAsync(),
+    provideAnimations(),
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
     { provide: MAT_DATE_FORMATS, useValue: APP_DATE_FORMATS },
