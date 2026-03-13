@@ -33,6 +33,14 @@ export const routes: Routes = [
       import('./features/transactions/transactions.routes').then((m) => m.transactionsRoutes),
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/profile/pages/profile/profile.component').then(
+        (m) => m.ProfileComponent,
+      ),
+  },
+  {
     path: '',
     redirectTo: '/auth/login',
     pathMatch: 'full',
