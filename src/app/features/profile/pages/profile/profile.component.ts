@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   inject,
@@ -67,6 +68,7 @@ export class ProfileComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly profile = signal<UserProfile | null>(null);
   readonly loadingProfile = signal(true);
@@ -97,6 +99,9 @@ export class ProfileComponent implements OnInit {
           this.profile.set(data);
           this.infoForm.patchValue({ name: data.name, email: data.email });
           this.loadingProfile.set(false);
+          // markForCheck garantiza que los valores del form se reflejen
+          // en los inputs con ChangeDetectionStrategy.OnPush
+          this.cdr.markForCheck();
         },
         error: () => {
           this.snackBar.open('Error al cargar el perfil', 'Cerrar', { duration: 3000 });
@@ -146,10 +151,10 @@ export class ProfileComponent implements OnInit {
     if (this.passwordForm.invalid) return;
 
     this.savingPassword.set(true);
-    const { newPassword } = this.passwordForm.getRawValue();
+    const { currentPassword, newPassword } = this.passwordForm.getRawValue();
 
     this.profileService
-      .updateProfile({ password: newPassword! })
+      .updateProfile({ password: newPassword!, currentPassword: currentPassword! })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
