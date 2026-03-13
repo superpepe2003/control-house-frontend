@@ -1,4 +1,4 @@
-export type AccountType = 'CASH' | 'BANK' | 'CREDIT';
+export type AccountType = 'CASH' | 'BANK' | 'CREDIT' | 'VIRTUAL';
 
 export interface Account {
   id: number;

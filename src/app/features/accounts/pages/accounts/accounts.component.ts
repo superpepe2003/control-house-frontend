@@ -26,12 +26,14 @@ const TYPE_LABELS: Record<string, string> = {
   CASH: 'Efectivo',
   BANK: 'Banco',
   CREDIT: 'Crédito',
+  VIRTUAL: 'Virtual',
 };
 
 const TYPE_ICONS: Record<string, string> = {
   CASH: 'account_balance_wallet',
   BANK: 'account_balance',
   CREDIT: 'credit_card',
+  VIRTUAL: 'smartphone',
 };
 
 @Component({
