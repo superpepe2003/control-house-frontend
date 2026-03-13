@@ -1,7 +1,25 @@
+<!-- ── Toolbar ── -->
 <mat-toolbar color="primary">
   <mat-icon aria-hidden="true">home</mat-icon>
   <span class="toolbar-title">Control House</span>
   <span class="spacer"></span>
+
+  <!-- Navegación principal en la toolbar -->
+  <nav class="toolbar-nav" aria-label="Módulos">
+    <a mat-button routerLink="/accounts" aria-label="Ir a Cuentas">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <span class="nav-label">Cuentas</span>
+    </a>
+    <a mat-button routerLink="/categories" aria-label="Ir a Categorías">
+      <mat-icon>label</mat-icon>
+      <span class="nav-label">Categorías</span>
+    </a>
+    <a mat-button routerLink="/transactions" aria-label="Ir a Transacciones">
+      <mat-icon>receipt_long</mat-icon>
+      <span class="nav-label">Transacciones</span>
+    </a>
+  </nav>
+
   <button mat-icon-button routerLink="/profile" aria-label="Mi perfil" matTooltip="Mi perfil">
     <mat-icon>account_circle</mat-icon>
   </button>
@@ -11,71 +29,204 @@
 </mat-toolbar>
 
 <main class="dashboard-content">
-  <div class="hero-section" aria-labelledby="dashboard-heading">
-    <div class="hero-icon" aria-hidden="true">
-      <mat-icon>savings</mat-icon>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="state-wrapper" aria-label="Cargando dashboard">
+      <mat-spinner diameter="56" />
     </div>
-    <h1 id="dashboard-heading" class="hero-title">Panel de control</h1>
-    <p class="hero-subtitle">Gestioná tus finanzas personales desde un solo lugar.</p>
-  </div>
+  }
 
-  <section class="nav-section" aria-label="Módulos disponibles">
-    <h2 class="section-title">Módulos</h2>
+  <!-- Estado de error -->
+  @else if (error()) {
+    <div class="state-wrapper" role="alert">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <p class="error-text">{{ error() }}</p>
+    </div>
+  }
 
-    <div class="cards-grid">
-      @for (card of navCards; track card.route) {
-        <mat-card
-          class="nav-card"
-          [class.nav-card--disabled]="!card.available"
-          [attr.aria-disabled]="!card.available"
-          (click)="navigate(card)"
-          (keydown.enter)="navigate(card)"
-          (keydown.space)="navigate(card)"
-          [tabindex]="card.available ? 0 : -1"
-          [attr.role]="card.available ? 'button' : 'article'"
-          [attr.aria-label]="card.available ? ('Ir a ' + card.title) : (card.title + ', próximamente')"
-        >
-          <mat-card-header>
-            <div class="card-icon-wrapper" [class]="card.color" aria-hidden="true">
-              <mat-icon>{{ card.icon }}</mat-icon>
-            </div>
-            <div class="card-header-text">
-              <mat-card-title>{{ card.title }}</mat-card-title>
-              <mat-card-subtitle>
-                @if (card.available) {
-                  <mat-chip class="chip-active">Disponible</mat-chip>
+  <!-- Contenido principal -->
+  @else {
+    <div class="content-wrapper">
+
+      <!-- ── 1. Tarjetas de resumen ── -->
+      <section aria-label="Resumen financiero">
+        <div class="summary-grid">
+
+          <mat-card class="summary-card">
+            <mat-card-content>
+              <div class="card-icon card-icon--blue" aria-hidden="true">
+                <mat-icon>account_balance_wallet</mat-icon>
+              </div>
+              <div class="card-info">
+                <span class="card-label">Balance total</span>
+                <span class="card-value">
+                  {{ toNumber(summary()!.totalBalance) | currency:'ARS':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="summary-card">
+            <mat-card-content>
+              <div class="card-icon card-icon--green" aria-hidden="true">
+                <mat-icon>trending_up</mat-icon>
+              </div>
+              <div class="card-info">
+                <span class="card-label">Ingresos del mes</span>
+                <span class="card-value card-value--income">
+                  {{ toNumber(summary()!.monthlyIncome) | currency:'ARS':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="summary-card">
+            <mat-card-content>
+              <div class="card-icon card-icon--red" aria-hidden="true">
+                <mat-icon>trending_down</mat-icon>
+              </div>
+              <div class="card-info">
+                <span class="card-label">Gastos del mes</span>
+                <span class="card-value card-value--expense">
+                  {{ toNumber(summary()!.monthlyExpenses) | currency:'ARS':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </section>
+
+      <!-- ── 2. Gráficos ── -->
+      <section aria-label="Gráficos financieros">
+        <div class="charts-grid">
+
+          <!-- Barras: mes anterior vs mes actual -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <div class="section-icon section-icon--purple" mat-card-avatar aria-hidden="true">
+                <mat-icon>bar_chart</mat-icon>
+              </div>
+              <mat-card-title>Ingresos vs Gastos</mat-card-title>
+              <mat-card-subtitle>Mes anterior vs mes actual</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container" aria-label="Gráfico comparativo de ingresos y gastos">
+                @if (hasBarData()) {
+                  <canvas baseChart
+                    [data]="barChartData"
+                    [options]="barChartOptions"
+                    type="bar"
+                    role="img"
+                    aria-label="Gráfico de barras"
+                  ></canvas>
                 } @else {
-                  <mat-chip class="chip-soon">Próximamente</mat-chip>
+                  <p class="no-data">Sin datos para mostrar</p>
                 }
-              </mat-card-subtitle>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Torta: gastos por categoría -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <div class="section-icon section-icon--orange" mat-card-avatar aria-hidden="true">
+                <mat-icon>pie_chart</mat-icon>
+              </div>
+              <mat-card-title>Gastos por categoría</mat-card-title>
+              <mat-card-subtitle>Mes actual</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container" aria-label="Gráfico de gastos por categoría">
+                @if (hasPieData()) {
+                  <canvas baseChart
+                    [data]="pieChartData"
+                    [options]="pieChartOptions"
+                    type="pie"
+                    role="img"
+                    aria-label="Gráfico de torta"
+                  ></canvas>
+                } @else {
+                  <p class="no-data">Sin gastos registrados este mes</p>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </section>
+
+      <!-- ── 3. Últimas transacciones ── -->
+      <section aria-label="Últimas transacciones">
+        <mat-card>
+          <mat-card-header>
+            <div class="section-icon section-icon--teal" mat-card-avatar aria-hidden="true">
+              <mat-icon>receipt_long</mat-icon>
             </div>
+            <mat-card-title>Últimas transacciones</mat-card-title>
+            <mat-card-subtitle>Los 5 movimientos más recientes</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
-            <p class="card-description">{{ card.description }}</p>
+            @if (recentTransactions().length === 0) {
+              <p class="no-data no-data--padded">No hay transacciones registradas</p>
+            } @else {
+              <div class="table-wrapper">
+                <table mat-table [dataSource]="recentTransactions()" aria-label="Últimas transacciones">
+
+                  <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef scope="col">Fecha</th>
+                    <td mat-cell *matCellDef="let tx">{{ tx.date | date:'dd/MM/yyyy' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef scope="col">Descripción</th>
+                    <td mat-cell *matCellDef="let tx" class="td-description">
+                      {{ tx.description || tx.category.name }}
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="category">
+                    <th mat-header-cell *matHeaderCellDef scope="col">Categoría</th>
+                    <td mat-cell *matCellDef="let tx">{{ tx.category.name }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef scope="col">Tipo</th>
+                    <td mat-cell *matCellDef="let tx">
+                      <span class="type-badge" [class.type-badge--income]="tx.type === 'INCOME'" [class.type-badge--expense]="tx.type === 'EXPENSE'">
+                        {{ tx.type === 'INCOME' ? 'Ingreso' : 'Gasto' }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef scope="col" class="th-amount">Monto</th>
+                    <td mat-cell *matCellDef="let tx" class="td-amount"
+                        [class.amount-income]="tx.type === 'INCOME'"
+                        [class.amount-expense]="tx.type === 'EXPENSE'">
+                      {{ tx.type === 'INCOME' ? '+' : '-' }}{{ tx.amount | currency:'ARS':'symbol':'1.2-2' }}
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              </div>
+            }
           </mat-card-content>
 
-          <mat-card-actions>
-            @if (card.available) {
-              <button
-                mat-flat-button
-                class="card-btn"
-                [routerLink]="card.route"
-                (click)="$event.stopPropagation()"
-                [attr.aria-label]="'Ir a ' + card.title"
-              >
-                <mat-icon>arrow_forward</mat-icon>
-                Ir a {{ card.title }}
-              </button>
-            } @else {
-              <button mat-stroked-button disabled class="card-btn-disabled" aria-hidden="true">
-                <mat-icon>schedule</mat-icon>
-                En desarrollo
-              </button>
-            }
+          <mat-card-actions align="end">
+            <a mat-stroked-button routerLink="/transactions" aria-label="Ver todas las transacciones">
+              <mat-icon>arrow_forward</mat-icon>
+              Ver todas
+            </a>
           </mat-card-actions>
         </mat-card>
-      }
+      </section>
+
     </div>
-  </section>
+  }
+
 </main>

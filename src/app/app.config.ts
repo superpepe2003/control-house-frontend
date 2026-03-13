@@ -3,6 +3,7 @@ import { PreloadAllModules, provideRouter, withPreloading } from '@angular/route
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
@@ -25,5 +26,6 @@ export const appConfig: ApplicationConfig = {
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
     { provide: MAT_DATE_FORMATS, useValue: APP_DATE_FORMATS },
+    provideCharts(withDefaultRegisterables()),
   ],
 };
