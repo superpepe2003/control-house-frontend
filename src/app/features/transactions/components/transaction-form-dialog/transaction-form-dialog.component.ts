@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -34,6 +35,7 @@ export interface TransactionFormDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepickerModule,
     MatProgressSpinnerModule,
   ],
   template: `
@@ -50,6 +52,16 @@ export interface TransactionFormDialogData {
         </div>
       } @else {
         <form [formGroup]="form" id="transaction-form" (ngSubmit)="submit()">
+          <mat-form-field class="full-width">
+            <mat-label>Fecha</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date" />
+            <mat-datepicker-toggle matIconSuffix [for]="picker" />
+            <mat-datepicker #picker />
+            @if (form.get('date')?.hasError('required') && form.get('date')?.touched) {
+              <mat-error>La fecha es requerida</mat-error>
+            }
+          </mat-form-field>
+
           <mat-form-field class="full-width">
             <mat-label>Tipo</mat-label>
             <mat-select formControlName="type" (selectionChange)="onTypeChange()">
@@ -104,14 +116,6 @@ export interface TransactionFormDialogData {
             <input matInput formControlName="description" placeholder="Ej: Almuerzo en restaurante" maxlength="255" />
             @if (form.get('description')?.hasError('maxlength')) {
               <mat-error>Máximo 255 caracteres</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field class="full-width">
-            <mat-label>Fecha</mat-label>
-            <input matInput type="date" formControlName="date" />
-            @if (form.get('date')?.hasError('required') && form.get('date')?.touched) {
-              <mat-error>La fecha es requerida</mat-error>
             }
           </mat-form-field>
         </form>
@@ -180,12 +184,13 @@ export class TransactionFormDialogComponent implements OnInit {
 
   readonly isEdit = !!this.data?.transaction;
 
-  // Fecha formateada como "YYYY-MM-DD" para el input[type=date]
-  private readonly initialDate = this.data?.transaction
-    ? this.data.transaction.date.substring(0, 10)
-    : '';
+  // En edición parsea la fecha ISO a Date; en creación usa hoy como valor por defecto
+  private readonly initialDate: Date = this.data?.transaction
+    ? new Date(this.data.transaction.date)
+    : new Date();
 
   readonly form = this.fb.group({
+    date: [this.initialDate as Date | null, Validators.required],
     type: [
       (this.data?.transaction?.type ?? 'EXPENSE') as TransactionType,
       Validators.required,
@@ -200,7 +205,6 @@ export class TransactionFormDialogComponent implements OnInit {
       this.data?.transaction?.description ?? '',
       Validators.maxLength(255),
     ],
-    date: [this.initialDate, Validators.required],
   });
 
   // Convierte el valueChanges del type a signal para filtrar categorías reactivamente
@@ -272,11 +276,14 @@ export class TransactionFormDialogComponent implements OnInit {
 
     const raw = this.form.getRawValue();
 
+    // El datepicker devuelve un objeto Date; se convierte a ISO 8601 para el backend
+    const isoDate = (raw.date as Date).toISOString();
+
     if (this.isEdit) {
       const payload: UpdateTransactionRequest = {
         amount: raw.amount as number,
         description: raw.description ?? undefined,
-        date: raw.date as string,
+        date: isoDate,
         type: raw.type as TransactionType,
         categoryId: raw.categoryId as number,
         accountId: raw.accountId as number,
@@ -293,7 +300,7 @@ export class TransactionFormDialogComponent implements OnInit {
       const payload: CreateTransactionRequest = {
         amount: raw.amount as number,
         description: raw.description ?? undefined,
-        date: raw.date as string,
+        date: isoDate,
         type: raw.type as TransactionType,
         categoryId: raw.categoryId as number,
         accountId: raw.accountId as number,
