@@ -17,6 +17,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { MatDividerModule } from '@angular/material/divider';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -39,6 +42,9 @@ import { Transaction } from '../../../transactions/models/transaction.models';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatSidenavModule,
+    MatListModule,
+    MatDividerModule,
     BaseChartDirective,
   ],
   templateUrl: './dashboard.component.html',

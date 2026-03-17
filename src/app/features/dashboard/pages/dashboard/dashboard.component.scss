@@ -1,15 +1,52 @@
+/* ── Sidenav container ── */
+.sidenav-container {
+  height: 100vh;
+}
+
+.mobile-sidenav {
+  width: 260px;
+}
+
 /* ── Toolbar ── */
 mat-toolbar {
+  /* Fix colores: forzar fondo primary y texto on-primary para contraste correcto en M3 */
+  --mat-toolbar-container-background-color: var(--mat-sys-primary);
+  --mat-toolbar-container-text-color: var(--mat-sys-on-primary);
+
   gap: 4px;
 
   .toolbar-title {
     font-size: 1.2rem;
     font-weight: 500;
-    margin-left: 8px;
+    margin-left: 4px;
+    color: var(--mat-sys-on-primary);
+  }
+
+  .brand-icon {
+    color: var(--mat-sys-on-primary);
   }
 
   .spacer {
     flex: 1 1 auto;
+  }
+}
+
+/* Botón hamburguesa: solo visible en mobile */
+.hamburger-btn {
+  display: none;
+  color: var(--mat-sys-on-primary);
+
+  @media (max-width: 767px) {
+    display: flex;
+  }
+}
+
+/* Acciones de escritorio: ocultar en mobile */
+.desktop-action {
+  color: var(--mat-sys-on-primary);
+
+  @media (max-width: 767px) {
+    display: none;
   }
 }
 
@@ -18,12 +55,22 @@ mat-toolbar {
   align-items: center;
   margin-right: 8px;
 
+  /* Ocultar en mobile */
+  @media (max-width: 767px) {
+    display: none;
+  }
+
   a[mat-button] {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: rgba(255, 255, 255, 0.9);
+    /* Usar color on-primary para contraste correcto sobre el fondo primary */
+    color: var(--mat-sys-on-primary);
     font-size: 0.85rem;
+
+    /* Override de Angular Material que fuerza el color del botón */
+    --mat-text-button-label-text-color: var(--mat-sys-on-primary);
+    --mat-text-button-state-layer-color: var(--mat-sys-on-primary);
 
     mat-icon {
       font-size: 20px;
@@ -34,7 +81,7 @@ mat-toolbar {
   }
 }
 
-/* Ocultar etiquetas en pantallas pequeñas */
+/* Ocultar etiquetas en pantallas medianas (mantiene íconos) */
 @media (max-width: 680px) {
   .nav-label {
     display: none;
