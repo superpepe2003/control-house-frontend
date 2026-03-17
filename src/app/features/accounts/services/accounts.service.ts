@@ -19,10 +19,6 @@ export class AccountsService {
     return this.http.get<ApiResponse<Account[]>>(this.baseUrl).pipe(map((r) => r.data));
   }
 
-  getById(id: number): Observable<Account> {
-    return this.http.get<ApiResponse<Account>>(`${this.baseUrl}/${id}`).pipe(map((r) => r.data));
-  }
-
   create(data: CreateAccountRequest): Observable<Account> {
     return this.http.post<ApiResponse<Account>>(this.baseUrl, data).pipe(map((r) => r.data));
   }
@@ -32,6 +28,8 @@ export class AccountsService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http
+      .delete<ApiResponse<null>>(`${this.baseUrl}/${id}`)
+      .pipe(map(() => void 0));
   }
 }

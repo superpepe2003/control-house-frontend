@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -30,6 +32,7 @@ export const CURRENCIES = ['USD', 'PYG', 'ARS', 'EUR', 'BRL'];
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
@@ -45,12 +48,15 @@ export const CURRENCIES = ['USD', 'PYG', 'ARS', 'EUR', 'BRL'];
       <form [formGroup]="form" id="account-form" (ngSubmit)="submit()">
         <mat-form-field class="full-width">
           <mat-label>Nombre</mat-label>
-          <input matInput formControlName="name" placeholder="Ej: Cuenta corriente" />
+          <input matInput formControlName="name" placeholder="Ej: Cuenta corriente" maxlength="100" />
           @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
             <mat-error>El nombre es requerido</mat-error>
           }
           @if (form.get('name')?.hasError('minlength') && form.get('name')?.touched) {
             <mat-error>Mínimo 2 caracteres</mat-error>
+          }
+          @if (form.get('name')?.hasError('maxlength') && form.get('name')?.touched) {
+            <mat-error>Máximo 100 caracteres</mat-error>
           }
         </mat-form-field>
 
@@ -130,6 +136,7 @@ export class AccountFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AccountFormDialogComponent>);
   private readonly data = inject<AccountFormDialogData>(MAT_DIALOG_DATA);
   private readonly accountsService = inject(AccountsService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly accountTypes = ACCOUNT_TYPES;
   readonly currencies = CURRENCIES;
@@ -140,7 +147,10 @@ export class AccountFormDialogComponent {
   readonly isEdit = !!this.data?.account;
 
   readonly form = this.fb.group({
-    name: [this.data?.account?.name ?? '', [Validators.required, Validators.minLength(2)]],
+    name: [
+      this.data?.account?.name ?? '',
+      [Validators.required, Validators.minLength(2), Validators.maxLength(100)],
+    ],
     type: [this.data?.account?.type ?? ('CASH' as AccountType), Validators.required],
     balance: [this.data?.account?.balance ?? 0, Validators.min(0)],
     currency: [this.data?.account?.currency ?? 'ARS'],
@@ -160,22 +170,28 @@ export class AccountFormDialogComponent {
 
     if (this.isEdit) {
       const payload: UpdateAccountRequest = { name, type, balance, currency };
-      this.accountsService.update(this.data.account!.id, payload).subscribe({
-        next: (account) => this.dialogRef.close(account),
-        error: (err) => {
-          this.errorMessage.set(err?.error?.message ?? 'Error al actualizar la cuenta');
-          this.loading.set(false);
-        },
-      });
+      this.accountsService
+        .update(this.data.account!.id, payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (account) => this.dialogRef.close(account),
+          error: (err) => {
+            this.errorMessage.set(err?.error?.message ?? 'Error al actualizar la cuenta');
+            this.loading.set(false);
+          },
+        });
     } else {
       const payload: CreateAccountRequest = { name, type, balance, currency };
-      this.accountsService.create(payload).subscribe({
-        next: (account) => this.dialogRef.close(account),
-        error: (err) => {
-          this.errorMessage.set(err?.error?.message ?? 'Error al crear la cuenta');
-          this.loading.set(false);
-        },
-      });
+      this.accountsService
+        .create(payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (account) => this.dialogRef.close(account),
+          error: (err) => {
+            this.errorMessage.set(err?.error?.message ?? 'Error al crear la cuenta');
+            this.loading.set(false);
+          },
+        });
     }
   }
 }

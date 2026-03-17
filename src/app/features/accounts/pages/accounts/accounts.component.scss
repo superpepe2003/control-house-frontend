@@ -43,7 +43,7 @@ mat-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 
   .page-title {
     margin: 0;
@@ -56,6 +56,42 @@ mat-toolbar {
     margin: 4px 0 0;
     color: var(--mat-sys-on-surface-variant);
     font-size: 0.875rem;
+  }
+}
+
+/* Resumen de balances por moneda */
+.summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 8px 16px;
+
+  .summary-currency {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .summary-amount {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+
+    &.negative {
+      color: var(--mat-sys-error);
+    }
   }
 }
 
@@ -109,12 +145,6 @@ mat-toolbar {
     margin-top: 4px;
   }
 
-  mat-card-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding: 8px;
-  }
-
   .delete-btn {
     color: var(--mat-sys-error);
   }
@@ -142,6 +172,10 @@ mat-toolbar {
 
   &.avatar-credit {
     background-color: #9c27b0;
+  }
+
+  &.avatar-virtual {
+    background-color: #ff9800;
   }
 }
 
@@ -182,5 +216,10 @@ mat-chip {
   &.chip-credit {
     --mdc-chip-label-text-color: #6a1b9a;
     --mdc-chip-elevated-container-color: #f3e5f5;
+  }
+
+  &.chip-virtual {
+    --mdc-chip-label-text-color: #e65100;
+    --mdc-chip-elevated-container-color: #fff3e0;
   }
 }

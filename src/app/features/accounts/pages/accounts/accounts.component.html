@@ -34,8 +34,22 @@
         </button>
       </div>
 
+      <!-- Resumen de balances por moneda -->
+      @if (accounts().length > 0) {
+        <div class="summary-row" aria-label="Resumen de balances por moneda">
+          @for (entry of totalByCurrency() | keyvalue; track entry.key) {
+            <div class="summary-chip">
+              <span class="summary-currency">{{ entry.key }}</span>
+              <span class="summary-amount" [class.negative]="entry.value < 0">
+                {{ entry.value | currency: entry.key : 'symbol' : '1.2-2' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+
       @if (accounts().length === 0) {
-        <div class="empty-state">
+        <div class="empty-state" role="status" aria-live="polite">
           <mat-icon class="empty-icon" aria-hidden="true">account_balance_wallet</mat-icon>
           <h2>Sin cuentas registradas</h2>
           <p>Creá tu primera cuenta para empezar a gestionar tus finanzas.</p>
@@ -69,7 +83,7 @@
                 </div>
               </mat-card-content>
 
-              <mat-card-actions>
+              <mat-card-actions align="end">
                 <button
                   mat-icon-button
                   (click)="openEditDialog(account)"

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CurrencyPipe, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +13,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../auth/services/auth.service';
 import { AccountsService } from '../../services/accounts.service';
-import { Account } from '../../models/account.models';
+import { Account, AccountType } from '../../models/account.models';
 import {
   AccountFormDialogComponent,
   AccountFormDialogData,
@@ -22,14 +23,14 @@ import {
   DeleteConfirmDialogData,
 } from '../../components/delete-confirm-dialog/delete-confirm-dialog.component';
 
-const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS: Record<AccountType, string> = {
   CASH: 'Efectivo',
   BANK: 'Banco',
   CREDIT: 'Crédito',
   VIRTUAL: 'Virtual',
 };
 
-const TYPE_ICONS: Record<string, string> = {
+const TYPE_ICONS: Record<AccountType, string> = {
   CASH: 'account_balance_wallet',
   BANK: 'account_balance',
   CREDIT: 'credit_card',
@@ -41,6 +42,7 @@ const TYPE_ICONS: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CurrencyPipe,
+    KeyValuePipe,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -60,6 +62,7 @@ export class AccountsComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly accounts = signal<Account[]>([]);
   readonly loading = signal(true);
@@ -67,6 +70,15 @@ export class AccountsComponent implements OnInit {
 
   readonly typeLabels = TYPE_LABELS;
   readonly typeIcons = TYPE_ICONS;
+
+  /** Balance agrupado por moneda — evita sumar divisas heterogéneas */
+  readonly totalByCurrency = computed<Record<string, number>>(() => {
+    const result: Record<string, number> = {};
+    for (const account of this.accounts()) {
+      result[account.currency] = (result[account.currency] ?? 0) + account.balance;
+    }
+    return result;
+  });
 
   ngOnInit(): void {
     this.loadAccounts();
@@ -76,44 +88,53 @@ export class AccountsComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.accountsService.getAll().subscribe({
-      next: (data) => {
-        this.accounts.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message ?? 'Error al cargar las cuentas');
-        this.loading.set(false);
-      },
-    });
+    this.accountsService
+      .getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.accounts.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message ?? 'Error al cargar las cuentas');
+          this.loading.set(false);
+        },
+      });
   }
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open<AccountFormDialogComponent, AccountFormDialogData, Account>(
       AccountFormDialogComponent,
-      { data: {} },
+      { data: {}, width: '440px' },
     );
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.accounts.update((list) => [...list, result]);
-        this.snackBar.open('Cuenta creada exitosamente', 'Cerrar', { duration: 3000 });
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result) {
+          this.accounts.update((list) => [...list, result]);
+          this.snackBar.open('Cuenta creada exitosamente', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 
   openEditDialog(account: Account): void {
     const dialogRef = this.dialog.open<AccountFormDialogComponent, AccountFormDialogData, Account>(
       AccountFormDialogComponent,
-      { data: { account } },
+      { data: { account }, width: '440px' },
     );
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.accounts.update((list) => list.map((a) => (a.id === result.id ? result : a)));
-        this.snackBar.open('Cuenta actualizada exitosamente', 'Cerrar', { duration: 3000 });
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result) {
+          this.accounts.update((list) => list.map((a) => (a.id === result.id ? result : a)));
+          this.snackBar.open('Cuenta actualizada exitosamente', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 
   confirmDelete(account: Account): void {
@@ -122,11 +143,14 @@ export class AccountsComponent implements OnInit {
       { data: { accountName: account.name } },
     );
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.deleteAccount(account);
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.deleteAccount(account);
+        }
+      });
   }
 
   private deleteAccount(account: Account): void {
@@ -151,9 +175,5 @@ export class AccountsComponent implements OnInit {
 
   goToDashboard(): void {
     this.router.navigate(['/dashboard']);
-  }
-
-  totalBalance(): number {
-    return this.accounts().reduce((sum, a) => sum + a.balance, 0);
   }
 }
