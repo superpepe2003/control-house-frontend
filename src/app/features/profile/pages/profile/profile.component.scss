@@ -27,6 +27,30 @@ mat-toolbar {
   min-height: 300px;
 }
 
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 300px;
+  text-align: center;
+
+  .error-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #c62828;
+  }
+
+  .error-text {
+    color: #c62828;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+/* Tarjeta de resumen del perfil */
 .profile-card {
   width: 100%;
   max-width: 560px;
@@ -35,20 +59,9 @@ mat-toolbar {
     margin-bottom: 8px;
     align-items: center;
   }
-
-  mat-card-actions {
-    padding: 8px 16px 16px;
-    gap: 8px;
-
-    button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  }
 }
 
-/* Avatar circular en la tarjeta de info */
+/* Avatar circular */
 .avatar {
   display: flex;
   align-items: center;
@@ -72,27 +85,4 @@ mat-toolbar {
   margin: 4px 0 0;
   font-size: 0.8rem;
   color: #757575;
-}
-
-/* Campos del formulario */
-.full-width {
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-/* Hint para desbloquear campos de contraseña */
-.unlock-hint {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 4px;
-
-  button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-}
-
-.divider {
-  margin: 16px 0;
 }

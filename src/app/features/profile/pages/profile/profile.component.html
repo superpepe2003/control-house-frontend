@@ -13,188 +13,44 @@
 <main class="profile-content">
 
   @if (loadingProfile()) {
-    <div class="loading-wrapper" aria-label="Cargando perfil">
+    <div class="loading-wrapper" aria-live="polite" aria-label="Cargando perfil">
       <mat-spinner diameter="48" />
     </div>
+  } @else if (errorProfile()) {
+    <div class="error-state">
+      <mat-icon class="error-icon" aria-hidden="true">error_outline</mat-icon>
+      <p class="error-text" role="alert">{{ errorProfile() }}</p>
+      <button mat-flat-button (click)="loadProfile()">Reintentar</button>
+    </div>
   } @else {
+    @if (profile(); as currentProfile) {
 
-    <!-- Tarjeta de información -->
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <div class="avatar" aria-hidden="true">
-          <mat-icon>person</mat-icon>
-        </div>
-        <div>
-          <mat-card-title>{{ profile()?.name }}</mat-card-title>
-          <mat-card-subtitle>{{ profile()?.email }}</mat-card-subtitle>
-          <p class="member-since">
-            Miembro desde {{ profile()?.createdAt | date:'MMMM yyyy' : '' : 'es-AR' }}
-          </p>
-        </div>
-      </mat-card-header>
-    </mat-card>
+      <!-- Tarjeta de resumen -->
+      <mat-card class="profile-card">
+        <mat-card-header>
+          <div class="avatar" aria-hidden="true">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div>
+            <mat-card-title>{{ currentProfile.name }}</mat-card-title>
+            <mat-card-subtitle>{{ currentProfile.email }}</mat-card-subtitle>
+            <p class="member-since">
+              Miembro desde {{ currentProfile.createdAt | date:'MMMM yyyy' : '' : 'es-AR' }}
+            </p>
+          </div>
+        </mat-card-header>
+      </mat-card>
 
-    <!-- Editar datos -->
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar aria-hidden="true">edit</mat-icon>
-        <mat-card-title>Editar información</mat-card-title>
-        <mat-card-subtitle>Actualizá tu nombre y email</mat-card-subtitle>
-      </mat-card-header>
+      <!-- Formulario de información personal -->
+      <app-profile-info-form
+        [profile]="currentProfile"
+        (profileUpdated)="profile.set($event)"
+      />
 
-      <mat-card-content>
-        <form [formGroup]="infoForm" (ngSubmit)="saveInfo()" id="info-form" novalidate>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre completo</mat-label>
-            <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
-            <input matInput formControlName="name" type="text" autocomplete="name" />
-            @if (infoForm.get('name')?.hasError('required') && infoForm.get('name')?.touched) {
-              <mat-error>El nombre es requerido</mat-error>
-            } @else if (infoForm.get('name')?.hasError('minlength') && infoForm.get('name')?.touched) {
-              <mat-error>El nombre debe tener al menos 2 caracteres</mat-error>
-            }
-          </mat-form-field>
+      <!-- Formulario de cambio de contraseña -->
+      <app-profile-password-form />
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <mat-icon matPrefix aria-hidden="true">email</mat-icon>
-            <input matInput formControlName="email" type="email" autocomplete="email" />
-            @if (infoForm.get('email')?.hasError('required') && infoForm.get('email')?.touched) {
-              <mat-error>El email es requerido</mat-error>
-            } @else if (infoForm.get('email')?.hasError('email') && infoForm.get('email')?.touched) {
-              <mat-error>El email no es válido</mat-error>
-            }
-          </mat-form-field>
-        </form>
-      </mat-card-content>
-
-      <mat-card-actions align="end">
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          form="info-form"
-          [disabled]="infoForm.invalid || savingInfo()"
-          aria-label="Guardar cambios del perfil"
-        >
-          @if (savingInfo()) {
-            <mat-spinner diameter="20" />
-          } @else {
-            <span style="display:flex;align-items:center;gap:8px">
-              <mat-icon>save</mat-icon>Guardar Cambios
-            </span>
-          }
-        </button>
-      </mat-card-actions>
-    </mat-card>
-
-    <!-- Cambiar contraseña -->
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar aria-hidden="true">lock</mat-icon>
-        <mat-card-title>Cambiar contraseña</mat-card-title>
-        <mat-card-subtitle>Ingresá tu contraseña actual para continuar</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" id="password-form" novalidate>
-
-          <!-- Contraseña actual siempre visible -->
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Contraseña actual</mat-label>
-            <mat-icon matPrefix aria-hidden="true">lock_outline</mat-icon>
-            <input
-              matInput
-              formControlName="currentPassword"
-              type="password"
-              autocomplete="current-password"
-            />
-            @if (passwordForm.get('currentPassword')?.hasError('required') && passwordForm.get('currentPassword')?.touched) {
-              <mat-error>Ingresá tu contraseña actual</mat-error>
-            }
-          </mat-form-field>
-
-          @if (!showNewPasswordFields()) {
-            <div class="unlock-hint">
-              <button
-                mat-stroked-button
-                type="button"
-                (click)="unlockNewPassword()"
-                aria-label="Continuar para ingresar nueva contraseña"
-              >
-                <mat-icon>arrow_forward</mat-icon>
-                Continuar
-              </button>
-            </div>
-          } @else {
-            <mat-divider class="divider" />
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nueva contraseña</mat-label>
-              <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
-              <input
-                matInput
-                formControlName="newPassword"
-                type="password"
-                autocomplete="new-password"
-              />
-              @if (passwordForm.get('newPassword')?.hasError('required') && passwordForm.get('newPassword')?.touched) {
-                <mat-error>La nueva contraseña es requerida</mat-error>
-              } @else if (passwordForm.get('newPassword')?.hasError('minlength') && passwordForm.get('newPassword')?.touched) {
-                <mat-error>Mínimo 6 caracteres</mat-error>
-              } @else if (passwordForm.get('newPassword')?.hasError('maxlength') && passwordForm.get('newPassword')?.touched) {
-                <mat-error>Máximo 72 caracteres</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Confirmar nueva contraseña</mat-label>
-              <mat-icon matPrefix aria-hidden="true">lock_reset</mat-icon>
-              <input
-                matInput
-                formControlName="confirmPassword"
-                type="password"
-                autocomplete="new-password"
-              />
-              @if (passwordForm.get('confirmPassword')?.hasError('required') && passwordForm.get('confirmPassword')?.touched) {
-                <mat-error>Confirmá la nueva contraseña</mat-error>
-              } @else if (passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched) {
-                <mat-error>Las contraseñas no coinciden</mat-error>
-              }
-            </mat-form-field>
-          }
-        </form>
-      </mat-card-content>
-
-      @if (showNewPasswordFields()) {
-        <mat-card-actions align="end">
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="showNewPasswordFields.set(false); passwordForm.reset()"
-            aria-label="Cancelar cambio de contraseña"
-          >
-            Cancelar
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            form="password-form"
-            [disabled]="passwordForm.invalid || savingPassword()"
-            aria-label="Guardar nueva contraseña"
-          >
-            @if (savingPassword()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              <span style="display:flex;align-items:center;gap:8px">
-                <mat-icon>check</mat-icon>Cambiar Contraseña
-              </span>
-            }
-          </button>
-        </mat-card-actions>
-      }
-    </mat-card>
-
+    }
   }
+
 </main>
