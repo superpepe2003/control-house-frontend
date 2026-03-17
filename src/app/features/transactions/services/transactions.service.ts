@@ -16,7 +16,9 @@ interface ApiResponse<T> {
   data: T;
 }
 
-interface PaginatedApiResponse<T> extends ApiResponse<T> {
+/** El backend retorna data: { items: T[], meta: PaginationMeta } para listas paginadas */
+interface PaginatedData<T> {
+  items: T[];
   meta: PaginationMeta;
 }
 
@@ -37,8 +39,8 @@ export class TransactionsService {
     if (params.limit) httpParams = httpParams.set('limit', String(params.limit));
 
     return this.http
-      .get<PaginatedApiResponse<Transaction[]>>(this.baseUrl, { params: httpParams })
-      .pipe(map((r) => ({ data: r.data, meta: r.meta })));
+      .get<ApiResponse<PaginatedData<Transaction>>>(this.baseUrl, { params: httpParams })
+      .pipe(map((r) => ({ data: r.data.items, meta: r.data.meta })));
   }
 
   getById(id: number): Observable<Transaction> {

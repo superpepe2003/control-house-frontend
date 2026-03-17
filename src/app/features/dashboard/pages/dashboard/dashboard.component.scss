@@ -1,15 +1,63 @@
+/* ── Sidenav container ── */
+.sidenav-container {
+  height: 100vh;
+}
+
+.mobile-sidenav {
+  width: 260px;
+}
+
 /* ── Toolbar ── */
 mat-toolbar {
+  /*
+   * En Angular Material M3 (v17+) color="primary" usa primary-container (tono claro).
+   * Forzamos fondo primary oscuro + texto blanco con los tokens correctos del toolbar
+   * y con background-color directo como fallback.
+   */
+  --mat-toolbar-container-background-color: var(--mat-sys-primary);
+  --mat-toolbar-container-text-color: #fff;
+  background-color: var(--mat-sys-primary);
+  color: #fff;
+
   gap: 4px;
 
   .toolbar-title {
     font-size: 1.2rem;
     font-weight: 500;
-    margin-left: 8px;
+    margin-left: 4px;
+    color: #fff;
+  }
+
+  .brand-icon {
+    color: #fff;
   }
 
   .spacer {
     flex: 1 1 auto;
+  }
+}
+
+/* Botón hamburguesa: solo visible en mobile */
+.hamburger-btn {
+  display: none;
+  /* Tokens MDC correctos para icon-button en Angular Material 21 */
+  --mdc-icon-button-icon-color: #fff;
+  --mat-icon-button-state-layer-color: #fff;
+  color: #fff;
+
+  @media (max-width: 767px) {
+    display: flex;
+  }
+}
+
+/* Acciones de escritorio (perfil, logout): ocultar en mobile */
+.desktop-action {
+  --mdc-icon-button-icon-color: #fff;
+  --mat-icon-button-state-layer-color: #fff;
+  color: #fff;
+
+  @media (max-width: 767px) {
+    display: none;
   }
 }
 
@@ -18,23 +66,32 @@ mat-toolbar {
   align-items: center;
   margin-right: 8px;
 
+  /* Ocultar en mobile */
+  @media (max-width: 767px) {
+    display: none;
+  }
+
   a[mat-button] {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: rgba(255, 255, 255, 0.9);
     font-size: 0.85rem;
+    /* Tokens MDC correctos para text-button en Angular Material 21 */
+    --mdc-text-button-label-text-color: #fff;
+    --mat-text-button-state-layer-color: #fff;
+    color: #fff;
 
     mat-icon {
       font-size: 20px;
       width: 20px;
       height: 20px;
       line-height: 20px;
+      color: #fff;
     }
   }
 }
 
-/* Ocultar etiquetas en pantallas pequeñas */
+/* Ocultar etiquetas en pantallas medianas (mantiene íconos) */
 @media (max-width: 680px) {
   .nav-label {
     display: none;
