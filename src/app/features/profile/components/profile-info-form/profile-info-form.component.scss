@@ -1,0 +1,25 @@
+.profile-card {
+  width: 100%;
+  max-width: 560px;
+
+  mat-card-header {
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  mat-card-actions {
+    padding: 8px 16px 16px;
+    gap: 8px;
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

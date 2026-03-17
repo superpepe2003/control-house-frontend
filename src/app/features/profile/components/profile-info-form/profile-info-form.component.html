@@ -1,0 +1,52 @@
+<mat-card class="profile-card">
+  <mat-card-header>
+    <mat-icon mat-card-avatar aria-hidden="true">edit</mat-icon>
+    <mat-card-title>Editar información</mat-card-title>
+    <mat-card-subtitle>Actualizá tu nombre y email</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="save()" id="info-form" novalidate>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre completo</mat-label>
+        <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
+        <input matInput formControlName="name" type="text" autocomplete="name" />
+        @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+          <mat-error>El nombre es requerido</mat-error>
+        } @else if (form.controls.name.hasError('minlength') && form.controls.name.touched) {
+          <mat-error>El nombre debe tener al menos 2 caracteres</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <mat-icon matPrefix aria-hidden="true">email</mat-icon>
+        <input matInput formControlName="email" type="email" autocomplete="email" />
+        @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+          <mat-error>El email es requerido</mat-error>
+        } @else if (form.controls.email.hasError('email') && form.controls.email.touched) {
+          <mat-error>El email no es válido</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      form="info-form"
+      [disabled]="form.invalid || form.pristine || saving()"
+      aria-label="Guardar cambios del perfil"
+    >
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        <span class="btn-content">
+          <mat-icon>save</mat-icon>Guardar Cambios
+        </span>
+      }
+    </button>
+  </mat-card-actions>
+</mat-card>
