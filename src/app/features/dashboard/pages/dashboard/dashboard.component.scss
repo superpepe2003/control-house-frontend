@@ -9,9 +9,15 @@
 
 /* ── Toolbar ── */
 mat-toolbar {
-  /* Fix colores: forzar fondo primary y texto on-primary para contraste correcto en M3 */
+  /*
+   * En Angular Material M3 (v17+) color="primary" usa primary-container (tono claro).
+   * Forzamos fondo primary oscuro + texto blanco con los tokens correctos del toolbar
+   * y con background-color directo como fallback.
+   */
   --mat-toolbar-container-background-color: var(--mat-sys-primary);
-  --mat-toolbar-container-text-color: var(--mat-sys-on-primary);
+  --mat-toolbar-container-text-color: #fff;
+  background-color: var(--mat-sys-primary);
+  color: #fff;
 
   gap: 4px;
 
@@ -19,11 +25,11 @@ mat-toolbar {
     font-size: 1.2rem;
     font-weight: 500;
     margin-left: 4px;
-    color: var(--mat-sys-on-primary);
+    color: #fff;
   }
 
   .brand-icon {
-    color: var(--mat-sys-on-primary);
+    color: #fff;
   }
 
   .spacer {
@@ -34,16 +40,21 @@ mat-toolbar {
 /* Botón hamburguesa: solo visible en mobile */
 .hamburger-btn {
   display: none;
-  color: var(--mat-sys-on-primary);
+  /* Tokens MDC correctos para icon-button en Angular Material 21 */
+  --mdc-icon-button-icon-color: #fff;
+  --mat-icon-button-state-layer-color: #fff;
+  color: #fff;
 
   @media (max-width: 767px) {
     display: flex;
   }
 }
 
-/* Acciones de escritorio: ocultar en mobile */
+/* Acciones de escritorio (perfil, logout): ocultar en mobile */
 .desktop-action {
-  color: var(--mat-sys-on-primary);
+  --mdc-icon-button-icon-color: #fff;
+  --mat-icon-button-state-layer-color: #fff;
+  color: #fff;
 
   @media (max-width: 767px) {
     display: none;
@@ -64,19 +75,18 @@ mat-toolbar {
     display: flex;
     align-items: center;
     gap: 4px;
-    /* Usar color on-primary para contraste correcto sobre el fondo primary */
-    color: var(--mat-sys-on-primary);
     font-size: 0.85rem;
-
-    /* Override de Angular Material que fuerza el color del botón */
-    --mat-text-button-label-text-color: var(--mat-sys-on-primary);
-    --mat-text-button-state-layer-color: var(--mat-sys-on-primary);
+    /* Tokens MDC correctos para text-button en Angular Material 21 */
+    --mdc-text-button-label-text-color: #fff;
+    --mat-text-button-state-layer-color: #fff;
+    color: #fff;
 
     mat-icon {
       font-size: 20px;
       width: 20px;
       height: 20px;
       line-height: 20px;
+      color: #fff;
     }
   }
 }
