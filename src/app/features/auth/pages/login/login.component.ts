@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +31,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -36,7 +39,7 @@ export class LoginComponent {
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(72)]],
   });
 
   togglePasswordVisibility(event: MouseEvent): void {
@@ -53,14 +56,19 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err: { error?: { message?: string } }) => {
-        this.errorMessage.set(err.error?.message ?? 'Credenciales incorrectas. Intentá de nuevo.');
-        this.loading.set(false);
-      },
-    });
+    this.authService
+      .login(this.form.getRawValue())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']).catch(() => {
+            this.loading.set(false);
+          });
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMessage.set(err.error?.message ?? 'Credenciales incorrectas. Intentá de nuevo.');
+          this.loading.set(false);
+        },
+      });
   }
 }
