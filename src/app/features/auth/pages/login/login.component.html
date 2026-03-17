@@ -47,6 +47,8 @@
             <mat-error>La contraseña es requerida</mat-error>
           } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
             <mat-error>La contraseña debe tener al menos 6 caracteres</mat-error>
+          } @else if (form.controls.password.hasError('maxlength') && form.controls.password.touched) {
+            <mat-error>La contraseña no puede superar los 72 caracteres</mat-error>
           }
         </mat-form-field>
 
@@ -56,7 +58,6 @@
 
         <button
           mat-flat-button
-          color="primary"
           type="submit"
           class="full-width submit-btn"
           [disabled]="loading()"
@@ -74,7 +75,7 @@
     <mat-card-actions class="actions-center">
       <p class="redirect-text">
         ¿No tenés cuenta?
-        <a routerLink="/auth/register" mat-button color="primary">Registrate</a>
+        <a routerLink="/auth/register" mat-button>Registrate</a>
       </p>
     </mat-card-actions>
   </mat-card>

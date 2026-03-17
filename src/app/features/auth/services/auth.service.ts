@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.models';
 
-const TOKEN_KEY = 'auth_token';
+export const TOKEN_KEY = 'auth_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

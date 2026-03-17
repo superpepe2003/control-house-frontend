@@ -15,6 +15,7 @@
             formControlName="name"
             placeholder="Tu nombre"
             autocomplete="name"
+            maxlength="100"
             [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
           />
           <mat-icon matSuffix aria-hidden="true">person</mat-icon>
@@ -22,6 +23,8 @@
             <mat-error>El nombre es requerido</mat-error>
           } @else if (form.controls.name.hasError('minlength') && form.controls.name.touched) {
             <mat-error>El nombre debe tener al menos 2 caracteres</mat-error>
+          } @else if (form.controls.name.hasError('maxlength') && form.controls.name.touched) {
+            <mat-error>El nombre no puede superar los 100 caracteres</mat-error>
           }
         </mat-form-field>
 
@@ -65,6 +68,8 @@
             <mat-error>La contraseña es requerida</mat-error>
           } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
             <mat-error>La contraseña debe tener al menos 6 caracteres</mat-error>
+          } @else if (form.controls.password.hasError('maxlength') && form.controls.password.touched) {
+            <mat-error>La contraseña no puede superar los 72 caracteres</mat-error>
           }
         </mat-form-field>
 
@@ -74,7 +79,7 @@
             matInput
             [type]="hideConfirm() ? 'password' : 'text'"
             formControlName="confirmPassword"
-            autocomplete="new-password"
+            autocomplete="off"
             [attr.aria-invalid]="form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched"
           />
           <button
@@ -99,7 +104,6 @@
 
         <button
           mat-flat-button
-          color="primary"
           type="submit"
           class="full-width submit-btn"
           [disabled]="loading()"
@@ -117,7 +121,7 @@
     <mat-card-actions class="actions-center">
       <p class="redirect-text">
         ¿Ya tenés cuenta?
-        <a routerLink="/auth/login" mat-button color="primary">Iniciá sesión</a>
+        <a routerLink="/auth/login" mat-button>Iniciá sesión</a>
       </p>
     </mat-card-actions>
   </mat-card>

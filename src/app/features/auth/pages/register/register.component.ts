@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,6 +38,7 @@ export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -44,9 +47,9 @@ export class RegisterComponent {
 
   readonly form = this.fb.nonNullable.group(
     {
-      name: ['', [Validators.required, Validators.minLength(2)]],
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(72)]],
       confirmPassword: ['', Validators.required],
     },
     { validators: passwordsMatchValidator },
@@ -73,14 +76,19 @@ export class RegisterComponent {
 
     const { name, email, password } = this.form.getRawValue();
 
-    this.authService.register({ name, email, password }).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err: { error?: { message?: string } }) => {
-        this.errorMessage.set(err.error?.message ?? 'Error al registrarse. Intentá de nuevo.');
-        this.loading.set(false);
-      },
-    });
+    this.authService
+      .register({ name, email, password })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']).catch(() => {
+            this.loading.set(false);
+          });
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMessage.set(err.error?.message ?? 'Error al registrarse. Intentá de nuevo.');
+          this.loading.set(false);
+        },
+      });
   }
 }
