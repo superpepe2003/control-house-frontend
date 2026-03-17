@@ -143,7 +143,7 @@ export class AccountFormDialogComponent {
     name: [this.data?.account?.name ?? '', [Validators.required, Validators.minLength(2)]],
     type: [this.data?.account?.type ?? ('CASH' as AccountType), Validators.required],
     balance: [this.data?.account?.balance ?? 0, Validators.min(0)],
-    currency: [this.data?.account?.currency ?? 'USD'],
+    currency: [this.data?.account?.currency ?? 'ARS'],
   });
 
   submit(): void {

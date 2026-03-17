@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { PreloadAllModules, provideRouter, withPreloading } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -24,6 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimations(),
     provideNativeDateAdapter(),
+    { provide: LOCALE_ID, useValue: 'es-AR' },
     { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
     { provide: MAT_DATE_FORMATS, useValue: APP_DATE_FORMATS },
     provideCharts(withDefaultRegisterables()),
