@@ -48,11 +48,12 @@
               </mat-select>
             </mat-form-field>
 
+            <!-- Categorías filtradas por tipo seleccionado -->
             <mat-form-field class="filter-field">
               <mat-label>Categoría</mat-label>
               <mat-select formControlName="categoryId">
                 <mat-option [value]="null">Todas</mat-option>
-                @for (cat of categories(); track cat.id) {
+                @for (cat of filteredCategories(); track cat.id) {
                   <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                 }
               </mat-select>
@@ -70,10 +71,13 @@
               <input matInput [matDatepicker]="pickerTo" formControlName="dateTo" />
               <mat-datepicker-toggle matIconSuffix [for]="pickerTo" />
               <mat-datepicker #pickerTo />
+              @if (filterForm.hasError('dateRange') && filterForm.get('dateTo')?.touched) {
+                <mat-error>La fecha "Hasta" debe ser igual o posterior a "Desde"</mat-error>
+              }
             </mat-form-field>
 
             <div class="filter-actions">
-              <button mat-flat-button type="submit">
+              <button mat-flat-button type="submit" [disabled]="filterForm.invalid">
                 <mat-icon>search</mat-icon>
                 Buscar
               </button>
@@ -85,22 +89,37 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Estado vacío -->
+      <!-- Estado vacío — diferencia entre "sin datos" y "sin resultados con filtros" -->
       @if (transactions().length === 0) {
-        <div class="empty-state">
+        <div class="empty-state" role="status" aria-live="polite">
           <mat-icon class="empty-icon" aria-hidden="true">receipt_long</mat-icon>
-          <h2>Sin transacciones registradas</h2>
-          <p>Registrá tu primera transacción para empezar a llevar el control.</p>
-          <button mat-flat-button (click)="openCreateDialog()">
-            <mat-icon>add</mat-icon>
-            Registrar transacción
-          </button>
+          @if (hasActiveFilters()) {
+            <h2>Sin resultados para los filtros aplicados</h2>
+            <p>Probá ajustando o eliminando los filtros para ver más transacciones.</p>
+            <button mat-flat-button (click)="clearFilters()">
+              <mat-icon>filter_list_off</mat-icon>
+              Limpiar filtros
+            </button>
+          } @else {
+            <h2>Sin transacciones registradas</h2>
+            <p>Registrá tu primera transacción para empezar a llevar el control.</p>
+            <button mat-flat-button (click)="openCreateDialog()">
+              <mat-icon>add</mat-icon>
+              Registrar transacción
+            </button>
+          }
         </div>
       } @else {
         <!-- Tabla de transacciones -->
         <mat-card class="table-card">
           <div class="table-container">
-            <table mat-table [dataSource]="transactions()" class="transactions-table" aria-label="Lista de transacciones">
+            <table
+              mat-table
+              [dataSource]="transactions()"
+              [trackBy]="trackById"
+              class="transactions-table"
+              aria-label="Lista de transacciones"
+            >
 
               <!-- Columna Fecha -->
               <ng-container matColumnDef="date">

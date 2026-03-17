@@ -1,3 +1,5 @@
+import type { AccountType } from '../../accounts/models/account.models';
+
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface TransactionCategory {
@@ -9,7 +11,7 @@ export interface TransactionCategory {
 export interface TransactionAccount {
   id: number;
   name: string;
-  type: string;
+  type: AccountType;
   currency: string;
 }
 

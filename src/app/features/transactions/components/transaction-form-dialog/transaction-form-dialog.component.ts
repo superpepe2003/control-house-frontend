@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { startWith } from 'rxjs';
+import { forkJoin, startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountsService } from '../../../accounts/services/accounts.service';
 import { CategoriesService } from '../../../categories/services/categories.service';
@@ -28,7 +29,6 @@ export interface TransactionFormDialogData {
 @Component({
   selector: 'app-transaction-form-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
@@ -159,6 +159,10 @@ export interface TransactionFormDialogData {
     </mat-dialog-actions>
   `,
   styles: `
+    :host {
+      display: contents;
+    }
+
     mat-dialog-content {
       min-width: 340px;
       display: flex;
@@ -219,6 +223,7 @@ export class TransactionFormDialogComponent implements OnInit {
   private readonly transactionsService = inject(TransactionsService);
   private readonly accountsService = inject(AccountsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly loadingData = signal(true);
@@ -295,41 +300,23 @@ export class TransactionFormDialogComponent implements OnInit {
   private loadData(): void {
     this.loadingData.set(true);
 
-    // Carga cuentas y categorías en paralelo
-    let accountsLoaded = false;
-    let categoriesLoaded = false;
-
-    const checkDone = () => {
-      if (accountsLoaded && categoriesLoaded) {
-        this.loadingData.set(false);
-      }
-    };
-
-    this.accountsService.getAll().subscribe({
-      next: (data) => {
-        this.accounts.set(data);
-        accountsLoaded = true;
-        checkDone();
-      },
-      error: () => {
-        this.errorMessage.set('Error al cargar las cuentas');
-        accountsLoaded = true;
-        checkDone();
-      },
-    });
-
-    this.categoriesService.getAll().subscribe({
-      next: (data) => {
-        this.categories.set(data);
-        categoriesLoaded = true;
-        checkDone();
-      },
-      error: () => {
-        this.errorMessage.set('Error al cargar las categorías');
-        categoriesLoaded = true;
-        checkDone();
-      },
-    });
+    // Carga cuentas y categorías en paralelo; cancela si el dialog se cierra antes
+    forkJoin({
+      accounts: this.accountsService.getAll(),
+      categories: this.categoriesService.getAll(),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ accounts, categories }) => {
+          this.accounts.set(accounts);
+          this.categories.set(categories);
+          this.loadingData.set(false);
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.message ?? 'Error al cargar los datos del formulario');
+          this.loadingData.set(false);
+        },
+      });
   }
 
   submit(): void {

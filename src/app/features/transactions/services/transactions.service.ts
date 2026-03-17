@@ -43,12 +43,6 @@ export class TransactionsService {
       .pipe(map((r) => ({ data: r.data.items, meta: r.data.meta })));
   }
 
-  getById(id: number): Observable<Transaction> {
-    return this.http
-      .get<ApiResponse<Transaction>>(`${this.baseUrl}/${id}`)
-      .pipe(map((r) => r.data));
-  }
-
   create(data: CreateTransactionRequest): Observable<Transaction> {
     return this.http
       .post<ApiResponse<Transaction>>(this.baseUrl, data)
@@ -62,6 +56,8 @@ export class TransactionsService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http
+      .delete<ApiResponse<null>>(`${this.baseUrl}/${id}`)
+      .pipe(map(() => void 0));
   }
 }
