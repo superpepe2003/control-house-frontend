@@ -1,10 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -21,6 +28,7 @@ import {
   DeleteCategoryConfirmDialogComponent,
   DeleteCategoryConfirmDialogData,
 } from '../../components/delete-confirm-dialog/delete-confirm-dialog.component';
+import { CategoryTableComponent } from '../../components/category-table/category-table.component';
 
 @Component({
   selector: 'app-categories',
@@ -29,13 +37,12 @@ import {
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
     MatDividerModule,
+    CategoryTableComponent,
   ],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss',
@@ -46,10 +53,15 @@ export class CategoriesComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly deletingId = signal<number | null>(null);
+
+  // Evita requests concurrentes al reintentar carga
+  private loadInFlight = false;
 
   // Categorías separadas por tipo para mostrar en secciones
   readonly incomeCategories = computed(() =>
@@ -59,26 +71,31 @@ export class CategoriesComponent implements OnInit {
     this.categories().filter((c) => c.type === 'EXPENSE'),
   );
 
-  readonly displayedColumns = ['name', 'type', 'actions'];
-
   ngOnInit(): void {
     this.loadCategories();
   }
 
-  loadCategories(): void {
+  protected loadCategories(): void {
+    if (this.loadInFlight) return;
+    this.loadInFlight = true;
     this.loading.set(true);
     this.error.set(null);
 
-    this.categoriesService.getAll().subscribe({
-      next: (data) => {
-        this.categories.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message ?? 'Error al cargar las categorías');
-        this.loading.set(false);
-      },
-    });
+    this.categoriesService
+      .getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.loadInFlight = false;
+          this.categories.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loadInFlight = false;
+          this.error.set(err?.error?.message ?? 'Error al cargar las categorías');
+          this.loading.set(false);
+        },
+      });
   }
 
   openCreateDialog(): void {
@@ -133,19 +150,26 @@ export class CategoriesComponent implements OnInit {
   }
 
   private deleteCategory(category: Category): void {
-    this.categoriesService.delete(category.id).subscribe({
-      next: () => {
-        this.categories.update((list) => list.filter((c) => c.id !== category.id));
-        this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 });
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message ?? 'Error al eliminar la categoría',
-          'Cerrar',
-          { duration: 4000 },
-        );
-      },
-    });
+    this.deletingId.set(category.id);
+
+    this.categoriesService
+      .delete(category.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deletingId.set(null);
+          this.categories.update((list) => list.filter((c) => c.id !== category.id));
+          this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 });
+        },
+        error: (err) => {
+          this.deletingId.set(null);
+          this.snackBar.open(
+            err?.error?.message ?? 'Error al eliminar la categoría',
+            'Cerrar',
+            { duration: 4000 },
+          );
+        },
+      });
   }
 
   goToDashboard(): void {

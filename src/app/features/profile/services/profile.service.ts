@@ -2,13 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { ApiResponse } from '../../../core/models/api-response.model';
 import { UpdateProfileRequest, UserProfile } from '../models/profile.models';
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data: T;
-}
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {

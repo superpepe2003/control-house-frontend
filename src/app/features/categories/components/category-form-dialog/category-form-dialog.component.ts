@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -42,13 +42,13 @@ const CATEGORY_TYPES: { value: CategoryType; label: string }[] = [
         <mat-form-field class="full-width">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="name" placeholder="Ej: Alimentación" />
-          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+          @if (form.controls.name.hasError('required') && form.controls.name.touched) {
             <mat-error>El nombre es requerido</mat-error>
           }
-          @if (form.get('name')?.hasError('minlength') && form.get('name')?.touched) {
+          @if (form.controls.name.hasError('minlength') && form.controls.name.touched) {
             <mat-error>Mínimo 2 caracteres</mat-error>
           }
-          @if (form.get('name')?.hasError('maxlength') && form.get('name')?.touched) {
+          @if (form.controls.name.hasError('maxlength') && form.controls.name.touched) {
             <mat-error>Máximo 50 caracteres</mat-error>
           }
         </mat-form-field>
@@ -60,7 +60,7 @@ const CATEGORY_TYPES: { value: CategoryType; label: string }[] = [
               <mat-option [value]="t.value">{{ t.label }}</mat-option>
             }
           </mat-select>
-          @if (form.get('type')?.hasError('required') && form.get('type')?.touched) {
+          @if (form.controls.type.hasError('required') && form.controls.type.touched) {
             <mat-error>El tipo es requerido</mat-error>
           }
         </mat-form-field>
@@ -108,7 +108,6 @@ const CATEGORY_TYPES: { value: CategoryType; label: string }[] = [
   `,
 })
 export class CategoryFormDialogComponent {
-  private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<CategoryFormDialogComponent>);
   private readonly data = inject<CategoryFormDialogData>(MAT_DIALOG_DATA);
   private readonly categoriesService = inject(CategoriesService);
@@ -118,12 +117,16 @@ export class CategoryFormDialogComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly isEdit = !!this.data?.category;
 
-  readonly form = this.fb.group({
-    name: [
-      this.data?.category?.name ?? '',
-      [Validators.required, Validators.minLength(2), Validators.maxLength(50)],
-    ],
-    type: [this.data?.category?.type ?? ('EXPENSE' as CategoryType), Validators.required],
+  // Formulario tipado explícitamente para evitar casteos en submit()
+  readonly form = new FormGroup({
+    name: new FormControl(this.data?.category?.name ?? '', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(50)],
+    }),
+    type: new FormControl<CategoryType>(this.data?.category?.type ?? 'EXPENSE', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
 
   submit(): void {
@@ -132,14 +135,15 @@ export class CategoryFormDialogComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const raw = this.form.getRawValue();
-    const name = raw.name as string;
-    const type = raw.type as CategoryType;
+    const { name, type } = this.form.getRawValue();
 
     if (this.isEdit) {
       const payload: UpdateCategoryRequest = { name, type };
       this.categoriesService.update(this.data.category!.id, payload).subscribe({
-        next: (category) => this.dialogRef.close(category),
+        next: (category) => {
+          this.loading.set(false);
+          this.dialogRef.close(category);
+        },
         error: (err) => {
           this.errorMessage.set(err?.error?.message ?? 'Error al actualizar la categoría');
           this.loading.set(false);
@@ -148,7 +152,10 @@ export class CategoryFormDialogComponent {
     } else {
       const payload: CreateCategoryRequest = { name, type };
       this.categoriesService.create(payload).subscribe({
-        next: (category) => this.dialogRef.close(category),
+        next: (category) => {
+          this.loading.set(false);
+          this.dialogRef.close(category);
+        },
         error: (err) => {
           this.errorMessage.set(err?.error?.message ?? 'Error al crear la categoría');
           this.loading.set(false);

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { ApiResponse } from '../../../core/models/api-response.model';
 import {
   CreateTransactionRequest,
   ListTransactionsParams,
@@ -9,12 +10,6 @@ import {
   Transaction,
   UpdateTransactionRequest,
 } from '../models/transaction.models';
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data: T;
-}
 
 /** El backend retorna data: { items: T[], meta: PaginationMeta } para listas paginadas */
 interface PaginatedData<T> {
